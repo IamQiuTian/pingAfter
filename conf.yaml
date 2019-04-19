@@ -1,0 +1,19 @@
+ip:
+    # 需要ping的主机地址
+    8.8.8.8
+    114.114.114.114
+local:
+    # 本机主机名
+    hostname: loclhost
+alert:
+    # 调用的报警脚本， 例： sh mail.sh testuesr@mail.com title message
+    alert_script: mail.py
+    execute: /usr/bin/python
+    to: user@mail.com
+    # 重试次数
+    interval: 3
+    # ping延迟阈值
+    corrtime: 300
+task:
+    # 多长时间执行一次检测任务
+    timer: 60
