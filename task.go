@@ -22,7 +22,6 @@ func Task(host string, w *sync.WaitGroup) {
 
 	raddr, err := net.ResolveIPAddr("ip", host)
 	if err != nil {
-		log.Println(err)
 		return
 	}
 	for i := 1; i < int(Config.Interval)+1; i++ {
@@ -41,7 +40,7 @@ func Task(host string, w *sync.WaitGroup) {
 	message := fmt.Sprintf("Number of errors: %s,  Response time: %sms", strconv.Itoa(int(PingValue["errCount"])), strconv.Itoa(int(PingValue["response_Time"])))
 
 	if PingValue["errCount"] >= Config.Interval || PingValue["response_Time"] >= Config.Corrtime {
-		title := fmt.Sprintf("%s to %s ping error", Config.Hostname, host)
+		title := fmt.Sprintf("%s to %s(%s) ping error", Config.Hostname, Config.HostList[host], host)
 		Afert(title, message)
 	}
 	log.Printf("to %s : %s\n", host, message)
@@ -59,7 +58,7 @@ func Afert(title, message string) {
 }
 
 func Run() {
-	for _, ip := range Config.IpList {
+	for ip, _ := range Config.HostList {
 		wg.Add(1)
 		go Task(ip, &wg)
 	}

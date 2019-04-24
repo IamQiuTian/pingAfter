@@ -9,7 +9,7 @@ import (
 var Config *config
 
 type config struct {
-	IpList       []string
+	HostList     map[string]string
 	Hostname     string
 	Alert_script string
 	Execute      string
@@ -27,7 +27,7 @@ func init() {
 		log.Fatal(err)
 	}
 	Config = &config{
-		IpList:       viper.GetStringSlice(`ip`),
+		HostList:     viper.GetStringMapString(`ip`),
 		Hostname:     viper.GetString(`local.hostname`),
 		Alert_script: viper.GetString(`alert.alert_script`),
 		Execute:      viper.GetString(`alert.execute`),

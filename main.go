@@ -1,12 +1,12 @@
 package main
 
 import (
-    "log"
+	"log"
 	"time"
 )
 
 func main() {
-    log.Println("Start....")
+	log.Println("Start....")
 	for {
 		select {
 		case <-time.After(time.Duration(Config.Timer) * time.Second):
