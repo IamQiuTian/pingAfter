@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"log"
 	"net"
 	"os/exec"
@@ -12,12 +13,15 @@ import (
 )
 
 var wg sync.WaitGroup
+var Info = make(map[string]map[string]int64)
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
 }
 
 func Task(host string, w *sync.WaitGroup) {
+	defer w.Done()
+
 	PingValue := map[string]int64{"errCount": 0, "response_Time": 0}
 
 	raddr, err := net.ResolveIPAddr("ip", host)
@@ -43,8 +47,10 @@ func Task(host string, w *sync.WaitGroup) {
 		title := fmt.Sprintf("%s to %s(%s) ping error", Config.Hostname, Config.HostList[host], host)
 		Afert(title, message)
 	}
+
+
+	Info[fmt.Sprintf("%s to %s", Config.Hostname, host)] = PingValue
 	log.Printf("to %s : %s\n", host, message)
-	defer w.Done()
 }
 
 func Afert(title, message string) {
@@ -52,9 +58,13 @@ func Afert(title, message string) {
 	defer cmd.Wait()
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 	log.Println(string(out))
+}
+
+func Jsonapi(c *gin.Context)  {
+	c.JSON(200, &Info)
 }
 
 func Run() {
