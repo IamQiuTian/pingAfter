@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 	"time"
@@ -12,7 +11,7 @@ func main() {
 	go func() {
 		r := gin.Default()
 		r.GET("/info", Jsonapi)
-		r.Run(fmt.Sprintf(":%s", Config.Port))
+		r.Run(Config.listen)
 	}()
 	for {
 		select {
