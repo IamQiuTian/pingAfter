@@ -44,13 +44,13 @@ func Task(host string, w *sync.WaitGroup) {
 	message := fmt.Sprintf("Number of errors: %s,  Response time: %sms", strconv.Itoa(int(PingValue["errCount"])), strconv.Itoa(int(PingValue["response_Time"])))
 
 	if PingValue["errCount"] >= Config.Interval || PingValue["response_Time"] >= Config.Corrtime {
-		title := fmt.Sprintf("%s to %s(%s) ping error", Config.Hostname, Config.HostList[host], host)
+		title := fmt.Sprintf("%s TO %s(%s) ping error", Config.Hostname, Config.HostList[host], host)
 		Afert(title, message)
 	}
 
 
 	Info[fmt.Sprintf("%s TO %s", Config.Hostname, host)] = PingValue
-	log.Printf("to %s : %s\n", host, message)
+	log.Printf("TO %s : %s\n", host, message)
 }
 
 func Afert(title, message string) {
