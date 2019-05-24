@@ -8,7 +8,7 @@ alert:
     # 调用的报警脚本， 例： sh mail.sh testuesr@mail.com title message
     alert_script: mail.py
     execute: /usr/bin/python
-    to: user@mail.com
+    to: [user1@mail.com,user2@mail.com]
     # 重试次数
     interval: 3
     # ping延迟阈值

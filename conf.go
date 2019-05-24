@@ -16,8 +16,8 @@ type config struct {
 	Interval     int64
 	Corrtime     int64
 	Timer        int64
-	listen         string
-	To           string
+	listen       string
+	To           []string
 }
 
 func init() {
@@ -32,10 +32,10 @@ func init() {
 		Hostname:     viper.GetString(`local.hostname`),
 		Alert_script: viper.GetString(`alert.alert_script`),
 		Execute:      viper.GetString(`alert.execute`),
-		To:           viper.GetString(`alert.to`),
+		To:           viper.GetStringSlice(`alert.to`),
 		Interval:     viper.GetInt64(`alert.interval`),
 		Corrtime:     viper.GetInt64(`alert.corrtime`),
 		Timer:        viper.GetInt64(`task.timer`),
-		listen:         viper.GetString(`http.listen`),
+		listen:       viper.GetString(`http.listen`),
 	}
 }

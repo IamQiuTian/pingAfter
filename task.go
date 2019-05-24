@@ -54,13 +54,19 @@ func Task(host string, w *sync.WaitGroup) {
 }
 
 func Afert(title, message string) {
-	cmd := exec.Command(Config.Execute, Config.Alert_script, Config.To, title, message)
-	defer cmd.Wait()
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatal(err)
+	afertFunc := func(user string) {
+		cmd := exec.Command(Config.Execute, Config.Alert_script, user, title, message)
+		defer cmd.Wait()
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println(string(out))
 	}
-	log.Println(string(out))
+
+	for _, u := range Config.To {
+		afertFunc(u)
+	}
 }
 
 func Jsonapi(c *gin.Context)  {
