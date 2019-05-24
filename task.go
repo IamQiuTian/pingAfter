@@ -49,7 +49,7 @@ func Task(host string, w *sync.WaitGroup) {
 	}
 
 
-	Info[fmt.Sprintf("%s to %s", Config.Hostname, host)] = PingValue
+	Info[fmt.Sprintf("%s TO %s", Config.Hostname, host)] = PingValue
 	log.Printf("to %s : %s\n", host, message)
 }
 
