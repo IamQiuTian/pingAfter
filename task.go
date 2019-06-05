@@ -13,6 +13,7 @@ import (
 )
 
 var wg sync.WaitGroup
+var Infomap sync.Map
 var Info = make(map[string]map[string]int64)
 
 func init() {
@@ -48,8 +49,7 @@ func Task(host string, w *sync.WaitGroup) {
 		Afert(title, message)
 	}
 
-
-	Info[fmt.Sprintf("%s TO %s", Config.Hostname, host)] = PingValue
+	Infomap.Store(fmt.Sprintf("%s TO %s", Config.Hostname, host), PingValue)
 	log.Printf("TO %s : %s\n", host, message)
 }
 
@@ -70,6 +70,10 @@ func Afert(title, message string) {
 }
 
 func Jsonapi(c *gin.Context)  {
+	Infomap.Range(func(k, v interface{}) bool {
+		Info[k.(string)] = v.(map[string]int64)
+		return true
+	})
 	c.JSON(200, &Info)
 }
 
