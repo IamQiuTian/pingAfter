@@ -1,6 +1,6 @@
 ip:
     # 需要ping的主机地址及主机名
-    1.1.1.1: google
+    8.8.8.8: google
 local:
     # 本机主机名
     hostname: loclhost
