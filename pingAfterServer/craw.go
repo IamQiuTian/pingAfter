@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"sync"
 	"time"
 )
 
@@ -43,6 +44,8 @@ type Run struct {
 	NodeStatus map[string]*ServerJson
 }
 
+var mux = &sync.Mutex{}
+
 func (this *Run) CrawInfo(serverjson *ServerJson, hostname, ip string, client *http.Client) {
 	resp, err := client.Get("http://" + ip + "/info")
 	if resp != nil {
@@ -50,23 +53,30 @@ func (this *Run) CrawInfo(serverjson *ServerJson, hostname, ip string, client *h
 	}
 
 	if err != nil {
+		mux.Lock()
+		defer mux.Unlock()
 		serverjson.Status = fmt.Sprintf("%s", err)
 		this.NodeStatus[hostname] = serverjson
 		return
 	}
 	jsonres, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
+		mux.Lock()
+		defer mux.Unlock()
 		serverjson.Status = fmt.Sprintf("%s", err)
 		this.NodeStatus[hostname] = serverjson
 		return
 	}
 
 	if err := json.Unmarshal([]byte(jsonres), &serverjson.AgentInfo); err != nil {
+		mux.Lock()
+		defer mux.Unlock()
 		serverjson.Status = fmt.Sprintf("%s", err)
 		this.NodeStatus[hostname] = serverjson
 		return
 	}
-
+	mux.Lock()
+	defer mux.Unlock()
 	serverjson.Status = "success"
 	this.NodeStatus[hostname] = serverjson
 }
