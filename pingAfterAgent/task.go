@@ -49,7 +49,7 @@ func Task(host string, w *sync.WaitGroup) {
 		Afert(title, message)
 	}
 
-	Infomap.Store(fmt.Sprintf("%s TO %s", Config.Hostname, host), PingValue)
+	Infomap.Store(fmt.Sprintf("%s TO %s", Config.Hostname, Config.HostList[host]), PingValue)
 	log.Printf("TO %s : %s\n", host, message)
 }
 
