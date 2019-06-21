@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var mux = &sync.RWMutex{}
+var mux = &sync.Mutex{}
 var wg sync.WaitGroup
 var Infomap sync.Map
 var Info = make(map[string]map[string]int64)
@@ -71,8 +71,8 @@ func Afert(title, message string) {
 }
 
 func Jsonapi(c *gin.Context)  {
-	mux.RLock()
-	defer mux.RUnlock()
+	mux.Lock()
+	defer mux.Unlock()
 	Infomap.Range(func(k, v interface{}) bool {
 		Info[k.(string)] = v.(map[string]int64)
 		return true
