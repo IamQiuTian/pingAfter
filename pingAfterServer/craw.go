@@ -1,14 +1,15 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"github.com/spf13/viper"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/json-iterator/go"
+	"github.com/spf13/viper"
 )
 
 func init() {
@@ -29,71 +30,76 @@ type config struct {
 	HostList map[string]string
 }
 
-type AgentJson struct {
-	HtoH          string `json: "hostname"`
+type AgentJsonInfo struct {
+	HtoH          string `json: "htoh"`
 	ErrCount      string `json: "errCount"`
 	Response_Time int64  `json: "response_Time"`
 }
 
 type ServerJson struct {
-	Status    string       `json: "status"`
-	AgentInfo []*AgentJson `json: "agentinfo"`
+	Status    string           `json: "status"`
+	AgentInfo []*AgentJsonInfo `json: "agentinfo"`
 }
 
+// {"hk01 TO google":{"errCount":0,"response_Time":1}}
+// {"hk02":{"Status":"success","AgentInfo":{"HTOH":"","JsonInfo":null}}}
+
 type Run struct {
-	NodeStatus map[string]*ServerJson
+	NodeStatus map[string]ServerJson
 }
 
 var mux = &sync.Mutex{}
+var json = jsoniter.ConfigCompatibleWithStandardLibrary
 
-func (this *Run) CrawInfo(serverjson *ServerJson, hostname, ip string, client *http.Client) {
-	resp, err := client.Get("http://" + ip + "/info")
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-
-	if err != nil {
-		mux.Lock()
-		defer mux.Unlock()
-		serverjson.Status = fmt.Sprintf("%s", err)
-		this.NodeStatus[hostname] = serverjson
-		return
-	}
-	jsonres, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		mux.Lock()
-		defer mux.Unlock()
-		serverjson.Status = fmt.Sprintf("%s", err)
-		this.NodeStatus[hostname] = serverjson
-		return
-	}
-
-	if err := json.Unmarshal([]byte(jsonres), &serverjson.AgentInfo); err != nil {
-		mux.Lock()
-		defer mux.Unlock()
-		serverjson.Status = fmt.Sprintf("%s", err)
-		this.NodeStatus[hostname] = serverjson
-		return
-	}
+func (this *Run) CrawInfo(hostname, ip string) {
 	mux.Lock()
 	defer mux.Unlock()
-	serverjson.Status = "success"
-	this.NodeStatus[hostname] = serverjson
-}
 
-func (this *Run) RunCrawInfo() {
-	this.NodeStatus = make(map[string]*ServerJson)
-	serverjson := ServerJson{}
+	var err error
+	var resp *http.Response
+	var jsonres []byte
+
+	serverJson := &ServerJson{}
 
 	client := &http.Client{
 		Timeout: time.Duration(1 * time.Second),
 	}
 
+	if resp, err = client.Get("http://" + ip + "/info"); err != nil {
+		goto ERR
+	}
+
+	if resp != nil {
+		defer resp.Body.Close()
+	}
+
+	if jsonres, err = ioutil.ReadAll(resp.Body); err != nil {
+		goto ERR
+	}
+
+	if err := json.Unmarshal([]byte(jsonres), &serverJson.AgentInfo); err != nil {
+		goto ERR
+	}
+
+	serverJson.Status = "success"
+	this.NodeStatus[hostname] = *serverJson
+
+ERR:
+	serverJson.Status = fmt.Sprintf("%s", err)
+	fmt.Println(err)
+	fmt.Println(serverJson.AgentInfo)
+	this.NodeStatus[hostname] = *serverJson
+	return
+}
+
+func (this *Run) RunCrawInfo() {
+	this.NodeStatus = make(map[string]ServerJson)
+
 	for {
 		select {
 		case <-time.After(10 * time.Second):
 			for hostname, ip := range Config.HostList {
-				go this.CrawInfo(&serverjson, hostname, ip, client)
+				go this.CrawInfo(hostname, ip)
 			}
 		}
 	}
@@ -105,7 +111,7 @@ func main() {
 	go run.RunCrawInfo()
 
 	infohttp := func(w http.ResponseWriter, r *http.Request) {
-		if err := json.NewEncoder(w).Encode(run.NodeStatus); err != nil {
+		if err := json.NewEncoder(w).Encode(&run.NodeStatus); err != nil {
 			log.Println(err)
 		}
 	}
